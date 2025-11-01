@@ -587,7 +587,7 @@ Extract - Analyze - Automate - Optimize - Report
    Git clone https://github.com/Usmansiyi/Sakila-SQL-Data-Analysis-Automation-Project.git
    
 
-2. **Set Up the Database**: Execute the SQL scripts in the `database_setup.sql` file to create and populate the database.
+2. **Set Up the Database**: Execute the SQL scripts in the `sakila-db/sakila-data.sql` , `sakila-db/sakila-data.sqlsakila-db/sakila-schema.sql` file to create and populate the database.
 3. **Run the Queries**: Use the SQL queries in the `analysis_queries.sql` file to perform the analysis.
 4. **Explore and Modify**: Customize the queries as needed to explore different aspects of the data or answer additional questions.
 
