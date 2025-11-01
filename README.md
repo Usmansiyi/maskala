@@ -6,7 +6,8 @@ A full SQL project journey from beginner analytics to advanced automation using 
 This project explores, analyzes, and automates business insights using the Sakila sample database.
 It progresses from simple SQL queries to advanced techniques such as stored procedures, triggers, and event scheduling, simulating real-world data engineering and analytics workflows.
 
-![Library_project](https://github.com/najirh/Library-System-Management---P2/blob/main/library.jpg)
+<img width="299" height="168" alt="download" src="https://github.com/user-attachments/assets/d86024d4-d254-48bf-a892-78e85a8b5279" />
+
 
 ## Objectives
   **1. BEGINNER LEVEL DATA EXPLORATION**
@@ -24,6 +25,7 @@ It progresses from simple SQL queries to advanced techniques such as stored proc
 
   **2. INTERMEDIATE LEVEL Analysis & Insights**
 11. Find top 10 customers by total spending.
+
 12. Identify the top 5 most rented films.
 13. Find categories that generate the highest revenue.
 14. Find staff members with the most rentals processed.
@@ -33,6 +35,7 @@ It progresses from simple SQL queries to advanced techniques such as stored proc
 18. List the top 3 paying customers per country.
 19. Identify the customers with overdue rentals.
 20. Compare average payment amounts by rating (e.g., PG, R, etc.).
+
 **Skills practiced: INNER JOIN, LEFT JOIN, HAVING, CASE, SUBQUERY, DATE FUNCTIONS, WINDOW FUNCTIONS**
 
  **3. ADVANCED LEVEL – Automation & Optimization**
@@ -55,476 +58,499 @@ It progresses from simple SQL queries to advanced techniques such as stored proc
  
 ## Project Structure
 
-### 1. Database Setup
-![ERD](https://github.com/najirh/Library-System-Management---P2/blob/main/library_erd.png)
+### 1. BEGINNER LEVEL DATA EXPLORATION
+<img width="299" height="168" alt="download" src="https://github.com/user-attachments/assets/d86024d4-d254-48bf-a892-78e85a8b5279" />
 
-- **Database Creation**: Created a database named `library_db`.
-- **Table Creation**: Created tables for branches, employees, members, books, issued status, and return status. Each table includes relevant columns and relationships.
+- **Database**: uploaded a database named `sakila`.
+- **Skills Practice: SELECT, WHERE, GROUP BY, ORDER BY, COUNT, JOIN, DISTINCT.**
 
 ```sql
-CREATE DATABASE library_db;
-
-DROP TABLE IF EXISTS branch;
-CREATE TABLE branch
-(
-            branch_id VARCHAR(10) PRIMARY KEY,
-            manager_id VARCHAR(10),
-            branch_address VARCHAR(30),
-            contact_no VARCHAR(15)
-);
-
-
--- Create table "Employee"
-DROP TABLE IF EXISTS employees;
-CREATE TABLE employees
-(
-            emp_id VARCHAR(10) PRIMARY KEY,
-            emp_name VARCHAR(30),
-            position VARCHAR(30),
-            salary DECIMAL(10,2),
-            branch_id VARCHAR(10),
-            FOREIGN KEY (branch_id) REFERENCES  branch(branch_id)
-);
-
-
--- Create table "Members"
-DROP TABLE IF EXISTS members;
-CREATE TABLE members
-(
-            member_id VARCHAR(10) PRIMARY KEY,
-            member_name VARCHAR(30),
-            member_address VARCHAR(30),
-            reg_date DATE
-);
-
-
-
--- Create table "Books"
-DROP TABLE IF EXISTS books;
-CREATE TABLE books
-(
-            isbn VARCHAR(50) PRIMARY KEY,
-            book_title VARCHAR(80),
-            category VARCHAR(30),
-            rental_price DECIMAL(10,2),
-            status VARCHAR(10),
-            author VARCHAR(30),
-            publisher VARCHAR(30)
-);
-
-
-
--- Create table "IssueStatus"
-DROP TABLE IF EXISTS issued_status;
-CREATE TABLE issued_status
-(
-            issued_id VARCHAR(10) PRIMARY KEY,
-            issued_member_id VARCHAR(30),
-            issued_book_name VARCHAR(80),
-            issued_date DATE,
-            issued_book_isbn VARCHAR(50),
-            issued_emp_id VARCHAR(10),
-            FOREIGN KEY (issued_member_id) REFERENCES members(member_id),
-            FOREIGN KEY (issued_emp_id) REFERENCES employees(emp_id),
-            FOREIGN KEY (issued_book_isbn) REFERENCES books(isbn) 
-);
-
-
-
--- Create table "ReturnStatus"
-DROP TABLE IF EXISTS return_status;
-CREATE TABLE return_status
-(
-            return_id VARCHAR(10) PRIMARY KEY,
-            issued_id VARCHAR(30),
-            return_book_name VARCHAR(80),
-            return_date DATE,
-            return_book_isbn VARCHAR(50),
-            FOREIGN KEY (return_book_isbn) REFERENCES books(isbn)
-);
-
+use sakila;
+-- 1. List all films — with title, release year, and rental rate.
+select title,
+		release_year,
+        rental_rate 
+from film;
 ```
 
-### 2. CRUD Operations
-
-- **Create**: Inserted sample records into the `books` table.
-- **Read**: Retrieved and displayed data from various tables.
-- **Update**: Updated records in the `employees` table.
-- **Delete**: Removed records from the `members` table as needed.
-
-**Task 1. Create a New Book Record**
--- "978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')"
-
+**2. Count films by rating (G, PG, etc.)**
 ```sql
-INSERT INTO books(isbn, book_title, category, rental_price, status, author, publisher)
-VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
-SELECT * FROM books;
+select rating, 
+		count(*) as cnt 
+from film
+	group by 1;
 ```
-**Task 2: Update an Existing Member's Address**
-
-```sql
-UPDATE members
-SET member_address = '125 Oak St'
-WHERE member_id = 'C103';
-```
-
-**Task 3: Delete a Record from the Issued Status Table**
--- Objective: Delete the record with issued_id = 'IS121' from the issued_status table.
-
-```sql
-DELETE FROM issued_status
-WHERE   issued_id =   'IS121';
-```
-
-**Task 4: Retrieve All Books Issued by a Specific Employee**
--- Objective: Select all books issued by the employee with emp_id = 'E101'.
-```sql
-SELECT * FROM issued_status
-WHERE issued_emp_id = 'E101'
-```
-
-
-**Task 5: List Members Who Have Issued More Than One Book**
--- Objective: Use GROUP BY to find members who have issued more than one book.
-
-```sql
-SELECT
-    issued_emp_id,
-    COUNT(*)
-FROM issued_status
-GROUP BY 1
-HAVING COUNT(*) > 1
-```
-
-### 3. CTAS (Create Table As Select)
-
-- **Task 6: Create Summary Tables**: Used CTAS to generate new tables based on query results - each book and total book_issued_cnt**
-
-```sql
-CREATE TABLE book_issued_cnt AS
-SELECT b.isbn, b.book_title, COUNT(ist.issued_id) AS issue_count
-FROM issued_status as ist
-JOIN books as b
-ON ist.issued_book_isbn = b.isbn
-GROUP BY b.isbn, b.book_title;
-```
-
-
-### 4. Data Analysis & Findings
-
-The following SQL queries were used to address specific questions:
-
-Task 7. **Retrieve All Books in a Specific Category**:
-
-```sql
-SELECT * FROM books
-WHERE category = 'Classic';
-```
-
-8. **Task 8: Find Total Rental Income by Category**:
-
-```sql
-SELECT 
-    b.category,
-    SUM(b.rental_price),
-    COUNT(*)
-FROM 
-issued_status as ist
-JOIN
-books as b
-ON b.isbn = ist.issued_book_isbn
-GROUP BY 1
-```
-
-9. **List Members Who Registered in the Last 180 Days**:
-```sql
-SELECT * FROM members
-WHERE reg_date >= CURRENT_DATE - INTERVAL '180 days';
-```
-
-10. **List Employees with Their Branch Manager's Name and their branch details**:
-
-```sql
-SELECT 
-    e1.emp_id,
-    e1.emp_name,
-    e1.position,
-    e1.salary,
-    b.*,
-    e2.emp_name as manager
-FROM employees as e1
-JOIN 
-branch as b
-ON e1.branch_id = b.branch_id    
-JOIN
-employees as e2
-ON e2.emp_id = b.manager_id
-```
-
-Task 11. **Create a Table of Books with Rental Price Above a Certain Threshold**:
-```sql
-CREATE TABLE expensive_books AS
-SELECT * FROM books
-WHERE rental_price > 7.00;
-```
-
-Task 12: **Retrieve the List of Books Not Yet Returned**
-```sql
-SELECT * FROM issued_status as ist
-LEFT JOIN
-return_status as rs
-ON rs.issued_id = ist.issued_id
-WHERE rs.return_id IS NULL;
-```
-
-## Advanced SQL Operations
-
-**Task 13: Identify Members with Overdue Books**  
-Write a query to identify members who have overdue books (assume a 30-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
-
-```sql
-SELECT 
-    ist.issued_member_id,
-    m.member_name,
-    bk.book_title,
-    ist.issued_date,
-    -- rs.return_date,
-    CURRENT_DATE - ist.issued_date as over_dues_days
-FROM issued_status as ist
-JOIN 
-members as m
-    ON m.member_id = ist.issued_member_id
-JOIN 
-books as bk
-ON bk.isbn = ist.issued_book_isbn
-LEFT JOIN 
-return_status as rs
-ON rs.issued_id = ist.issued_id
-WHERE 
-    rs.return_date IS NULL
-    AND
-    (CURRENT_DATE - ist.issued_date) > 30
-ORDER BY 1
-```
-
-
-**Task 14: Update Book Status on Return**  
-Write a query to update the status of books in the books table to "Yes" when they are returned (based on entries in the return_status table).
-
-
-```sql
-
-CREATE OR REPLACE PROCEDURE add_return_records(p_return_id VARCHAR(10), p_issued_id VARCHAR(10), p_book_quality VARCHAR(10))
-LANGUAGE plpgsql
-AS $$
-
-DECLARE
-    v_isbn VARCHAR(50);
-    v_book_name VARCHAR(80);
     
+**3. Find the 10 most recent films released.**
+```sql
+   select title,
+		  release_year,
+          last_update
+from film 
+order by 2,3
+limit 10;
+```
+ **4. Show all customers with their full names and email addresses.**
+ ```sql
+ select first_name,
+		last_name,
+        email
+ from customer;
+```
+**5. List all distinct cities where the store operates.**
+```sql
+SELECT distinct ct.city_id,
+				ct.city
+FROM sakila.store as st
+join sakila.address ad on st.address_id=ad.address_id
+join city ct on ad.city_id=ct.city_id;
+```
+**6. Find the number of films per category.**
+```sql
+SELECT name as category,
+	   count(*) as no_films
+FROM sakila.film_category as fc
+join sakila.category as ct on fc.category_id=ct.category_id
+group by 1;
+```
+ **7. Show top 5 actors who appear in the most films.**
+ ```sql
+SELECT a.actor_id,
+		a.first_name,
+        a.last_name,
+        count(*) as appearance
+FROM sakila.actor as a 
+join sakila.film_actor as fa on a.actor_id=fa.actor_id
+group by 1
+order by 4 desc
+limit 5;
+```
+**8. Calculate total payments per customer.**
+```sql
+SELECT c.customer_id,
+		c.first_name,
+        c.last_name,
+        sum(p.amount) as total_payment
+FROM sakila.customer as c
+join sakila.payment as p on c.customer_id=p.customer_id
+group by 1;
+```
+**9. List all rentals made by a specific customer (e.g., 'Mary Smith').**
+```sql
+SELECT c.customer_id,
+		concat(c.first_name,' ',c.last_name)as 'name',
+        group_concat(f.title separator ',') as 'list',
+		count(*) as no_rentals 
+FROM sakila.customer as c
+join sakila.rental as r on c.customer_id=r.customer_id
+join sakila.inventory as i on r.inventory_id=i.inventory_id
+join sakila.film as f on i.film_id=f.film_id
+where first_name='Mary' and last_name='Smith'
+group by 1;
+``
+ **10. Show how many films are in inventory for each store.**
+```sql
+select store_id,count(distinct film_id) as no_films
+from sakila.inventory
+group by 1;
+
+```
+
+### 2. INTERMEDIATE LEVEL – Analysis & Insights
+
+- **Skills practiced: INNER JOIN, LEFT JOIN, HAVING, CASE, SUBQUERY, DATE FUNCTIONS, WINDOW FUNCTIONS**
+
+**11. Find top 10 customers by total spending.**
+```sql
+SELECT c.customer_id,
+		concat(c.first_name,' ',c.last_name) as fullname,
+        sum(p.amount) total_spending
+FROM sakila.customer  as c
+join sakila.payment p on c.customer_id=p.customer_id
+group by 1
+order by 3 desc
+limit 10;
+```
+**12. Identify the top 5 most rented films.**
+```sql
+SELECT * from
+(SELECT f.film_id,
+	   f.title,
+       count(r.rental_id) as no_rented_film,
+       dense_rank() over(order by count(r.rental_id) desc) as rnk
+FROM sakila.film as f
+join sakila.inventory as i on f.film_id=i.film_id
+join sakila.rental as r on i.inventory_id=r.inventory_id
+group by 1) as t1
+where rnk <=5;
+```
+**13. Find categories that generate the highest revenue.**
+```sql
+SELECT c.category_id,
+		c.name,
+        sum(p.amount) as revenue
+FROM sakila.category as c
+join sakila.film_category as fc on c.category_id=fc.category_id
+join sakila.inventory as i on fc.film_id=i.film_id
+join sakila.rental as r on i.inventory_id=r.inventory_id
+join sakila.payment as p on r.rental_id=p.rental_id
+group by 1
+order by 3 desc;
+```
+**14. Find staff members with the most rentals processed.**
+```sql
+SELECT r.staff_id,
+		s.first_name,
+        s.last_name,
+        count(r.rental_id) as rentals_processed
+FROM sakila.rental as r
+join sakila.staff s on s.staff_id=r.staff_id
+group by 1;
+```
+**15. Show average rental duration per film category.**
+```sql
+SELECT c.category_id,
+		c.name,
+       round(avg( datediff( r.return_date,r.rental_date)),2) as average
+        
+FROM sakila.category as c
+join sakila.film_category as fc on c.category_id=fc.category_id
+join sakila.inventory as i on fc.film_id=i.film_id
+join sakila.rental as r on i.inventory_id=r.inventory_id
+group by 1
+order by 3 desc;
+```
+**16. Find customers who have never made a payment.**
+```sql
+with tab1 as 
+(SELECT p.customer_id,sum(p.amount) as payment
+FROM sakila.payment as p
+right join sakila.customer c on p.customer_id=c.customer_id
+group by 1)
+select * from tab1 
+where payment=0 or payment is null;
+```
+**17. Calculate monthly revenue trends.**
+```sql
+SELECT year(payment_date) as 'year',
+		month(payment_date) as 'month',
+        sum(amount) as revenue
+FROM sakila.payment 
+group by 1,2;
+```
+**18. List the top 3 paying customers per country.**
+```sql
+with  tab2 as
+(SELECT ctr.country_id,
+		ctr.country,
+        p.customer_id,
+        concat(c.first_name,' ',c.last_name) as fullname,
+        sum(amount) as payment,
+        dense_rank() over(partition by ctr.country_id order by sum(amount) desc) as rnk
+FROM sakila.payment as p
+join sakila.customer as c on p.customer_id=c.customer_id
+join sakila.address as a on c.address_id=a.address_id
+join sakila.city as ct on a.city_id=ct.city_id
+join sakila.country as ctr on ct.country_id=ctr.country_id
+group by 1,3)
+select * from tab2
+where rnk <= 3;
+```
+**19. Identify the customers with overdue rentals.**
+```sql
+SELECT c.customer_id,
+		concat(c.first_name,' ',c.last_name) as fullname,
+        f.title,
+		case when return_date > date_add(rental_date,interval f.rental_duration day)  then 'returned late'
+        when return_date is null then 'not return'
+        else 'returned ontime'
+        end as rent_status,
+        case when return_date > date_add(rental_date,interval f.rental_duration day)  
+        then datediff(return_date,date_add(rental_date,interval f.rental_duration day))
+        when return_date is null then datediff(now(),date_add(rental_date,interval f.rental_duration day) )
+        else 0
+        end as overdue_days
+FROM sakila.rental as r
+join sakila.customer as c on r.customer_id
+join sakila.inventory as i on r.inventory_id=i.inventory_id
+join sakila.film as f on i.film_id=f.film_id
+where (r.return_date > date_add(r.rental_date,interval f.rental_duration day)) 
+or (r.return_date is null and now()>date_add(r.rental_date,interval f.rental_duration day))
+order by 5 desc;
+```
+**20.  Compare average payment amounts by rating (e.g., PG, R, etc.).**
+```sql
+SELECT f.rating,
+		roun(avg(p.amount),2) as avg_payment
+FROM sakila.payment as p 
+join sakila.rental as r on p.rental_id=r.rental_id
+join sakila.inventory as i on r.inventory_id=i.inventory_id
+join sakila.film as f on i.film_id=f.film_id
+group by 1
+order by 2 desc;
+```
+### 3. ADVANCED LEVEL – Automation & Optimization
+
+- **The Goal is to Build advanced database objects to show engineering-level SQL proficiency**
+
+
+
+
+
+**1. Create Views
+Create a view vw_customer_revenue summarizing each customer’s total rentals and payments.**  
+
+```sql
+use sakila;
+Create or replace view vw_customer_revenue as
+(SELECT c.customer_id,
+		concat(c.first_name,' ',c.last_name) as fullname,
+        round(sum(p.amount),2) as total_payment,
+        count(r.rental_id) as total_rentals
+FROM sakila.payment as p
+join sakila.customer as c 
+join sakila.rental as r on p.customer_id=c.customer_id and  r.customer_id=c.customer_id
+group by c.customer_id);
+select * from vw_customer_revenue;
+
+
+/* 2. Stored Procedure
+Create a stored procedure sp_top_customers_by_month(year_input INT, month_input INT)
+→ Returns top 10 customers by payment amount for that month.*/
+
+DELIMITER $$
+drop procedure if exists sp_top_customers_by_month$$
+create procedure sp_top_customers_by_month(in year_input INT,in month_input INT)
 BEGIN
-    -- all your logic and code
-    -- inserting into returns based on users input
-    INSERT INTO return_status(return_id, issued_id, return_date, book_quality)
-    VALUES
-    (p_return_id, p_issued_id, CURRENT_DATE, p_book_quality);
+SELECT * FROM
+	(WITH Summary_table AS 
+		(SELECT year(payment_date) as 'year',
+				month(payment_date) as 'month',
+				c.customer_id,
+				concat(c.first_name,' ',c.last_name) as fullname,
+				sum(amount) as revenue,
+				dense_rank() over(partition by year(payment_date),month(payment_date) order by sum(amount) desc) AS RNK
+		FROM sakila.payment as p
+		join sakila.customer as c  on p.customer_id=c.customer_id 
+		group by 1,2,3)
+	 SELECT * FROM Summary_table where RNK <= 10)AS ST
+where year=year_input and month=month_input;
+END$$
+DELIMITER ;
+call sp_top_customers_by_month(2005, 5);
 
-    SELECT 
-        issued_book_isbn,
-        issued_book_name
-        INTO
-        v_isbn,
-        v_book_name
-    FROM issued_status
-    WHERE issued_id = p_issued_id;
+/* 3. Function
+Create a function fn_total_customer_spending(customer_id INT)
+→ Returns the total spending of a given customer.*/
 
-    UPDATE books
-    SET status = 'yes'
-    WHERE isbn = v_isbn;
+DELIMITER $$
+drop function if exists fn_total_customer_spending$$
+Create function fn_total_customer_spending(customer_id INT)
+returns int
+deterministic
+begin
+declare total_spending int;
+		select b into total_spending from
+			(SELECT cs.customer_id as c,
+				concat(cs.first_name,' ',cs.last_name) ,
+				round(sum(p.amount),2) as b
+		FROM sakila.payment as p
+		join sakila.customer as cs  on p.customer_id=cs.customer_id
+		group by 1)tab1
+        where c=customer_id;
+ return total_spending ;    
+end$$
+DELIMITER ;
+select fn_total_customer_spending(1);
 
-    RAISE NOTICE 'Thank you for returning the book: %', v_book_name;
-    
-END;
-$$
+
+/* 4. Trigger (AFTER INSERT)
+Create a trigger tr_payment_after_insert that updates a customer’s “loyalty_points” field (add 1 point per $1 spent).*/
+
+DELIMITER $$
+drop trigger if exists tr_payment_after_insert$$
+create trigger tr_payment_after_insert
+after insert on sakila.payment
+for each row
+begin
+  update sakila.customer
+  set sakila.customer.loyalty_point= sakila.customer.loyalty_point + new.amount;
+end$$
+DELIMITER ;
+
+/* 5. Trigger (BEFORE DELETE)
+Log any deleted rentals into a rental_archive table before deletion.
+
+-- Had to create another table to save the old records*/
+
+drop table if exists rental_archive;
+create table rental_archive like rental;
+alter table rental_archive
+add column deleted_at DATETIME DEFAULT NOW();
+
+DELIMITER $$
+drop trigger if exists save_deleted_rental_records$$
+create trigger save_deleted_rental_records
+before delete on sakila.rental
+for each row
+begin
+  insert into sakila.rental_archive(rental_id,
+									rental_date,
+                                    inventory_id,
+                                    customer_id,
+                                    return_date,
+                                    staff_id,
+                                    last_update,
+                                    deleted_at)
+							values(old.rental_id,
+									old.rental_date,
+                                    old.inventory_id,
+                                    old.customer_id,
+                                    old.return_date,
+                                    old.staff_id,
+                                    old.last_update,
+                                    now());
+end$$
+DELIMITER ;
+
+/* 6. Event Scheduler
+Create an event that runs monthly to archive all rentals older than 3 years.*/
+CREATE TABLE IF NOT EXISTS rental_archive (
+    archive_id INT AUTO_INCREMENT PRIMARY KEY,
+    rental_id INT,
+    rental_date DATETIME,
+    inventory_id INT,
+    customer_id INT,
+    return_date DATETIME,
+    staff_id INT,
+    last_update TIMESTAMP,
+    deleted_at DATETIME DEFAULT NOW(),
+    archived_by_event TINYINT DEFAULT 1
+);
+ DELIMITER $$
+ drop event if exists old_rentals$$
+ create event old_rentals
+ on schedule every 1 month
+ starts '2025-10-31 02:55:19'
+ do
+ begin
+ INSERT INTO rental_archive (
+        rental_id,
+        rental_date,
+        inventory_id,
+        customer_id,
+        return_date,
+        staff_id,
+        last_update,
+        deleted_at,
+        archived_by_event
+    )
+    SELECT
+        r.rental_id,
+        r.rental_date,
+        r.inventory_id,
+        r.customer_id,
+        r.return_date,
+        r.staff_id,
+        r.last_update,
+        NOW(),
+        1
+    FROM rental r
+    WHERE r.rental_date < NOW() - INTERVAL 3 YEAR;
+
+ 
+ delete FROM sakila.rental
+ where rental_date > now()-interval 3 year;
+ end$$
+DELIMITER ;
+
+/* 7. Complex Query
+Using CTEs, calculate revenue growth month-over-month for each store.*/
+
+with monthly_revenue as 
+	(SELECT year(payment_date) as 'year',
+		month(payment_date) as 'month',
+        s.store_id,
+        sum(amount) as revenue
+	FROM sakila.payment as p
+	join sakila.store as s on p.staff_id=s.manager_staff_id
+	group by 1,2,3)
+select *,
+		coalesce(lag(revenue) over(partition by store_id order by year,month),0) last_revenue,
+        concat(
+        round(coalesce(((revenue-coalesce(lag(revenue) over(partition by store_id order by year,month),0))
+        /coalesce(lag(revenue) over(partition by store_id order by year,month),0))*100,0),0),
+        '%')as MoM_revenue
+from monthly_revenue;
+
+/* 8. Dynamic SQL
+Write a procedure that accepts a category_name and dynamically returns the top 5 most rented films in that category.*/
+
+DELIMITER $$
+drop procedure if exists the_top5_mostRented_films_by_category$$
+create procedure the_top5_mostRented_films_by_category(in p_category varchar(30))
+begin
+set @shehu='WITH t1 as 
+(SELECT c.name,
+	   f.title,
+       count(r.rental_id) as no_rented_film,
+       dense_rank() over(partition by c.name order by count(r.rental_id) desc) as rnk
+FROM sakila.film_category as fc
+join sakila.category as c on fc.category_id=c.category_id
+join sakila.film as f on fc.film_id=f.film_id
+join sakila.inventory as i on fc.film_id=i.film_id
+join sakila.rental as r on i.inventory_id=r.inventory_id
+group by 1,2)SELECT * from t1 
+where rnk <=5 and name= ?;';
+prepare tab from @shehu;
+set @maskala = p_category;
+execute tab using @maskala;
+deallocate prepare tab;
+end$$
+DELIMITER ;
+call  the_top5_mostRented_films_by_category('drama');
 
 
--- Testing FUNCTION add_return_records
+/* 9. Optimization
+Create an index on rental (rental_date) and compare query performance before/after.*/
 
-issued_id = IS135
-ISBN = WHERE isbn = '978-0-307-58837-1'
+select * from sakila.rental
+where rental_date = '2005-05-24 23:03:39';
+create index idx_rental_date on sakila.rental (rental_date);
+select * from sakila.rental
+where rental_date = '2005-05-24 23:03:39';
+-- query is faster after creating index because its using the index instead of scanning the whole rental table
+-- as result the query perfomance improved
 
-SELECT * FROM books
-WHERE isbn = '978-0-307-58837-1';
+/* 10. Analytical Report
+Create a stored procedure sp_store_performance_report() that
+Calculates revenue, number of rentals, active customers
+Outputs results ordered by best-performing store.*/
 
-SELECT * FROM issued_status
-WHERE issued_book_isbn = '978-0-307-58837-1';
-
-SELECT * FROM return_status
-WHERE issued_id = 'IS135';
-
--- calling function 
-CALL add_return_records('RS138', 'IS135', 'Good');
-
--- calling function 
-CALL add_return_records('RS148', 'IS140', 'Good');
-
+DELIMITER $$
+drop procedure if exists sp_store_performance_report$$
+create procedure sp_store_performance_report()
+	begin
+    SELECT s.store_id,
+        a.address as store_address,
+        ct.city as store_city,
+        ctr.country as store_country,
+        sum(amount) as revenue,
+        count(distinct r.rental_id) as no_of_rentals,
+        count(distinct p.customer_id) active_customers
+	FROM sakila.payment as p
+		join sakila.store as s on p.staff_id=s.manager_staff_id
+		join sakila.rental as r on p.rental_id=r.rental_id
+		join sakila.customer as c on r.customer_id=c.customer_id
+		join sakila.address as a on s.address_id=a.address_id
+		join sakila.city as ct on a.city_id=ct.city_id
+		join sakila.country as ctr on ct.country_id=ctr.country_id
+	group by 1
+	order by 5;
+	end$$
+DELIMITER ;
+call sp_store_performance_report();
 ```
-
-
-
-
-**Task 15: Branch Performance Report**  
-Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total revenue generated from book rentals.
-
-```sql
-CREATE TABLE branch_reports
-AS
-SELECT 
-    b.branch_id,
-    b.manager_id,
-    COUNT(ist.issued_id) as number_book_issued,
-    COUNT(rs.return_id) as number_of_book_return,
-    SUM(bk.rental_price) as total_revenue
-FROM issued_status as ist
-JOIN 
-employees as e
-ON e.emp_id = ist.issued_emp_id
-JOIN
-branch as b
-ON e.branch_id = b.branch_id
-LEFT JOIN
-return_status as rs
-ON rs.issued_id = ist.issued_id
-JOIN 
-books as bk
-ON ist.issued_book_isbn = bk.isbn
-GROUP BY 1, 2;
-
-SELECT * FROM branch_reports;
-```
-
-**Task 16: CTAS: Create a Table of Active Members**  
-Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 2 months.
-
-```sql
-
-CREATE TABLE active_members
-AS
-SELECT * FROM members
-WHERE member_id IN (SELECT 
-                        DISTINCT issued_member_id   
-                    FROM issued_status
-                    WHERE 
-                        issued_date >= CURRENT_DATE - INTERVAL '2 month'
-                    )
-;
-
-SELECT * FROM active_members;
-
-```
-
-
-**Task 17: Find Employees with the Most Book Issues Processed**  
-Write a query to find the top 3 employees who have processed the most book issues. Display the employee name, number of books processed, and their branch.
-
-```sql
-SELECT 
-    e.emp_name,
-    b.*,
-    COUNT(ist.issued_id) as no_book_issued
-FROM issued_status as ist
-JOIN
-employees as e
-ON e.emp_id = ist.issued_emp_id
-JOIN
-branch as b
-ON e.branch_id = b.branch_id
-GROUP BY 1, 2
-```
-
-**Task 18: Identify Members Issuing High-Risk Books**  
-Write a query to identify members who have issued books more than twice with the status "damaged" in the books table. Display the member name, book title, and the number of times they've issued damaged books.    
-
-
-**Task 19: Stored Procedure**
-Objective:
-Create a stored procedure to manage the status of books in a library system.
-Description:
-Write a stored procedure that updates the status of a book in the library based on its issuance. The procedure should function as follows:
-The stored procedure should take the book_id as an input parameter.
-The procedure should first check if the book is available (status = 'yes').
-If the book is available, it should be issued, and the status in the books table should be updated to 'no'.
-If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
-
-```sql
-
-CREATE OR REPLACE PROCEDURE issue_book(p_issued_id VARCHAR(10), p_issued_member_id VARCHAR(30), p_issued_book_isbn VARCHAR(30), p_issued_emp_id VARCHAR(10))
-LANGUAGE plpgsql
-AS $$
-
-DECLARE
--- all the variabable
-    v_status VARCHAR(10);
-
-BEGIN
--- all the code
-    -- checking if book is available 'yes'
-    SELECT 
-        status 
-        INTO
-        v_status
-    FROM books
-    WHERE isbn = p_issued_book_isbn;
-
-    IF v_status = 'yes' THEN
-
-        INSERT INTO issued_status(issued_id, issued_member_id, issued_date, issued_book_isbn, issued_emp_id)
-        VALUES
-        (p_issued_id, p_issued_member_id, CURRENT_DATE, p_issued_book_isbn, p_issued_emp_id);
-
-        UPDATE books
-            SET status = 'no'
-        WHERE isbn = p_issued_book_isbn;
-
-        RAISE NOTICE 'Book records added successfully for book isbn : %', p_issued_book_isbn;
-
-
-    ELSE
-        RAISE NOTICE 'Sorry to inform you the book you have requested is unavailable book_isbn: %', p_issued_book_isbn;
-    END IF;
-END;
-$$
-
--- Testing The function
-SELECT * FROM books;
--- "978-0-553-29698-2" -- yes
--- "978-0-375-41398-8" -- no
-SELECT * FROM issued_status;
-
-CALL issue_book('IS155', 'C108', '978-0-553-29698-2', 'E104');
-CALL issue_book('IS156', 'C108', '978-0-375-41398-8', 'E104');
-
-SELECT * FROM books
-WHERE isbn = '978-0-375-41398-8'
-
-```
-
-
-
-**Task 20: Create Table As Select (CTAS)**
-Objective: Create a CTAS (Create Table As Select) query to identify overdue books and calculate fines.
-
-Description: Write a CTAS query to create a new table that lists each member and the books they have issued but not returned within 30 days. The table should include:
-    The number of overdue books.
-    The total fines, with each day's fine calculated at $0.50.
-    The number of books issued by each member.
-    The resulting table should show:
-    Member ID
-    Number of overdue books
-    Total fines
-
-
-
 ## Reports
 
 - **Database Schema**: Detailed table structures and relationships.
