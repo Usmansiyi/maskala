@@ -583,9 +583,7 @@ Extract - Analyze - Automate - Optimize - Report
 ## How to Use
 
 1. **Clone the Repository**: Clone this repository to your local machine.
-   ```bash
-git clone https://github.com/Usmansiyi/Sakila-SQL-Data-Analysis-Automation-Project.git
-cd Sakila-SQL-Data-Analysis-Automation-Project
+   ```bash https://github.com/Usmansiyi/Sakila-SQL-Data-Analysis-Automation-Project.git
    
 
 2. **Set Up the Database**: Execute the SQL scripts in the `database_setup.sql` file to create and populate the database.
