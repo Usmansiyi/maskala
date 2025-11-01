@@ -6,7 +6,8 @@ A full SQL project journey from beginner analytics to advanced automation using 
 This project explores, analyzes, and automates business insights using the Sakila sample database.
 It progresses from simple SQL queries to advanced techniques such as stored procedures, triggers, and event scheduling, simulating real-world data engineering and analytics workflows.
 
-<img width="299" height="168" alt="download" src="https://github.com/user-attachments/assets/d86024d4-d254-48bf-a892-78e85a8b5279" />
+<img width="1278" height="720" alt="sakila" src="https://github.com/user-attachments/assets/4ba305b8-f6a1-4493-b318-5ed7c074d47f" />
+
 
 
 ## Objectives
@@ -53,6 +54,18 @@ It progresses from simple SQL queries to advanced techniques such as stored proc
     Create a trigger tr_payment_after_insert that updates a customer’s “loyalty_points” field (add 1 point per $1 spent).
 25. Trigger (BEFORE DELETE)
     Log any deleted rentals into a rental_archive table before deletion.
+26. Event Scheduler
+Create an event that runs monthly to archive all rentals older than 3 years.
+27. Complex Query
+Using CTEs, calculate revenue growth month-over-month for each store.
+28. Dynamic SQL
+Write a procedure that accepts a category_name and dynamically returns the top 5 most rented films in that category.
+29. Optimization
+Create an index on rental (rental_date) and compare query performance before/after.
+30. Analytical Report
+Create a stored procedure sp_store_performance_report() that:
+Calculates revenue, number of rentals, active customers
+Outputs results ordered by best-performing store.
 
 
  
@@ -147,7 +160,7 @@ join sakila.inventory as i on r.inventory_id=i.inventory_id
 join sakila.film as f on i.film_id=f.film_id
 where first_name='Mary' and last_name='Smith'
 group by 1;
-``
+```
  **10. Show how many films are in inventory for each store.**
 ```sql
 select store_id,count(distinct film_id) as no_films
@@ -157,6 +170,8 @@ group by 1;
 ```
 
 ### 2. INTERMEDIATE LEVEL – Analysis & Insights
+![advanced-sql-techniques-for-complex-analysis](https://github.com/user-attachments/assets/0b770f6e-c621-41eb-a59a-3e27b5785073)
+
 
 - **Skills practiced: INNER JOIN, LEFT JOIN, HAVING, CASE, SUBQUERY, DATE FUNCTIONS, WINDOW FUNCTIONS**
 
@@ -290,6 +305,9 @@ group by 1
 order by 2 desc;
 ```
 ### 3. ADVANCED LEVEL – Automation & Optimization
+<img width="750" height="394" alt="sql-script" src="https://github.com/user-attachments/assets/7db19bb6-31f8-4e77-958e-f0bc29456c68" />
+
+
 
 - **The Goal is to Build advanced database objects to show engineering-level SQL proficiency**
 
@@ -297,7 +315,7 @@ order by 2 desc;
 
 
 
-**1. Create Views
+**21. Create Views
 Create a view vw_customer_revenue summarizing each customer’s total rentals and payments.**  
 
 ```sql
@@ -312,12 +330,12 @@ join sakila.customer as c
 join sakila.rental as r on p.customer_id=c.customer_id and  r.customer_id=c.customer_id
 group by c.customer_id);
 select * from vw_customer_revenue;
+```
 
-
-/* 2. Stored Procedure
+**22. Stored Procedure
 Create a stored procedure sp_top_customers_by_month(year_input INT, month_input INT)
-→ Returns top 10 customers by payment amount for that month.*/
-
+Returns top 10 customers by payment amount for that month.**
+```sql
 DELIMITER $$
 drop procedure if exists sp_top_customers_by_month$$
 create procedure sp_top_customers_by_month(in year_input INT,in month_input INT)
@@ -338,11 +356,11 @@ where year=year_input and month=month_input;
 END$$
 DELIMITER ;
 call sp_top_customers_by_month(2005, 5);
-
-/* 3. Function
+```
+**23. Function
 Create a function fn_total_customer_spending(customer_id INT)
-→ Returns the total spending of a given customer.*/
-
+Returns the total spending of a given customer.**
+```sql
 DELIMITER $$
 drop function if exists fn_total_customer_spending$$
 Create function fn_total_customer_spending(customer_id INT)
@@ -362,11 +380,11 @@ declare total_spending int;
 end$$
 DELIMITER ;
 select fn_total_customer_spending(1);
+```
 
-
-/* 4. Trigger (AFTER INSERT)
-Create a trigger tr_payment_after_insert that updates a customer’s “loyalty_points” field (add 1 point per $1 spent).*/
-
+**24. Trigger (AFTER INSERT)
+Create a trigger tr_payment_after_insert that updates a customer’s “loyalty_points” field (add 1 point per $1 spent).**
+```sql
 DELIMITER $$
 drop trigger if exists tr_payment_after_insert$$
 create trigger tr_payment_after_insert
@@ -377,10 +395,10 @@ begin
   set sakila.customer.loyalty_point= sakila.customer.loyalty_point + new.amount;
 end$$
 DELIMITER ;
-
-/* 5. Trigger (BEFORE DELETE)
-Log any deleted rentals into a rental_archive table before deletion.
-
+```
+**25. Trigger (BEFORE DELETE)
+Log any deleted rentals into a rental_archive table before deletion.**
+```sql
 -- Had to create another table to save the old records*/
 
 drop table if exists rental_archive;
@@ -412,9 +430,10 @@ begin
                                     now());
 end$$
 DELIMITER ;
-
-/* 6. Event Scheduler
-Create an event that runs monthly to archive all rentals older than 3 years.*/
+```
+**26. Event Scheduler
+Create an event that runs monthly to archive all rentals older than 3 years.**
+```sql
 CREATE TABLE IF NOT EXISTS rental_archive (
     archive_id INT AUTO_INCREMENT PRIMARY KEY,
     rental_id INT,
@@ -463,10 +482,10 @@ CREATE TABLE IF NOT EXISTS rental_archive (
  where rental_date > now()-interval 3 year;
  end$$
 DELIMITER ;
-
-/* 7. Complex Query
-Using CTEs, calculate revenue growth month-over-month for each store.*/
-
+```
+**27. Complex Query
+Using CTEs, calculate revenue growth month-over-month for each store.**
+```sql
 with monthly_revenue as 
 	(SELECT year(payment_date) as 'year',
 		month(payment_date) as 'month',
@@ -482,10 +501,10 @@ select *,
         /coalesce(lag(revenue) over(partition by store_id order by year,month),0))*100,0),0),
         '%')as MoM_revenue
 from monthly_revenue;
-
-/* 8. Dynamic SQL
-Write a procedure that accepts a category_name and dynamically returns the top 5 most rented films in that category.*/
-
+```
+**28. Dynamic SQL
+Write a procedure that accepts a category_name and dynamically returns the top 5 most rented films in that category.**
+```sql
 DELIMITER $$
 drop procedure if exists the_top5_mostRented_films_by_category$$
 create procedure the_top5_mostRented_films_by_category(in p_category varchar(30))
@@ -509,11 +528,11 @@ deallocate prepare tab;
 end$$
 DELIMITER ;
 call  the_top5_mostRented_films_by_category('drama');
+```
 
-
-/* 9. Optimization
-Create an index on rental (rental_date) and compare query performance before/after.*/
-
+**29. Optimization
+Create an index on rental (rental_date) and compare query performance before/after.**
+```sql
 select * from sakila.rental
 where rental_date = '2005-05-24 23:03:39';
 create index idx_rental_date on sakila.rental (rental_date);
@@ -521,12 +540,11 @@ select * from sakila.rental
 where rental_date = '2005-05-24 23:03:39';
 -- query is faster after creating index because its using the index instead of scanning the whole rental table
 -- as result the query perfomance improved
-
-/* 10. Analytical Report
-Create a stored procedure sp_store_performance_report() that
-Calculates revenue, number of rentals, active customers
-Outputs results ordered by best-performing store.*/
-
+```
+**30. Analytical Report
+Create a stored procedure sp_store_performance_report() that Calculates revenue, number of rentals, active customers
+Outputs results ordered by best-performing store.**
+```sql
 DELIMITER $$
 drop procedure if exists sp_store_performance_report$$
 create procedure sp_store_performance_report()
@@ -554,31 +572,32 @@ call sp_store_performance_report();
 ## Reports
 
 - **Database Schema**: Detailed table structures and relationships.
-- **Data Analysis**: Insights into book categories, employee salaries, member registration trends, and issued books.
+- **Data Analysis**:Top 10 Customers by Revenue, Monthly Revenue Growth per Store, Category-wise Film Rental Frequency,
+  					Overdue Rentals & Customer Retention and Automated Monthly Archival Event.
 - **Summary Reports**: Aggregated data on high-demand books and employee performance.
 
 ## Conclusion
-
-This project demonstrates the application of SQL skills in creating and managing a library management system. It includes database setup, data manipulation, and advanced querying, providing a solid foundation for data management and analysis.
+Overall, the project represents a complete mini–data warehouse lifecycle:
+Extract - Analyze - Automate - Optimize - Report
 
 ## How to Use
 
 1. **Clone the Repository**: Clone this repository to your local machine.
    ```sh
-   git clone https://github.com/najirh/Library-System-Management---P2.git
+   git clone https://github.com/<usmansiyi>/sakila-sql-analysis.git
+cd sakila-sql-analysis
+
    ```
 
 2. **Set Up the Database**: Execute the SQL scripts in the `database_setup.sql` file to create and populate the database.
 3. **Run the Queries**: Use the SQL queries in the `analysis_queries.sql` file to perform the analysis.
 4. **Explore and Modify**: Customize the queries as needed to explore different aspects of the data or answer additional questions.
 
-## Author - Zero Analyst
+## Author - Usman Siyi
 
-This project showcases SQL skills essential for database management and analysis. For more content on SQL and data analysis, connect with me through the following channels:
+This project showcases SQL skills essential for database management and analysis. looking For someone with skills on SQL and data analysis , connect with me through the following channels:
 
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community for learning and collaboration](https://discord.gg/36h5f2Z5PK)
+- **Email**: (nuraensiyi@Ggmail.com)
+- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/UsmanSiyi)
 
 Thank you for your interest in this project!
