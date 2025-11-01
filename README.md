@@ -583,7 +583,7 @@ Extract - Analyze - Automate - Optimize - Report
 ## How to Use
 
 1. **Clone the Repository**: Clone this repository to your local machine.
-   ```
+   ```bash
 [[git clone https://github.com/<usmansiyi>/sakila-sql-analysis.git
 cd sakila-sql-analysis](https://github.com/Usmansiyi/maskala.git)](https://github.com/Usmansiyi/Sakila-SQL-Data-Analysis-Automation-Project.git)
    
